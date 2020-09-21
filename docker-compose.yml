@@ -21,14 +21,10 @@ services:
             - ./config/nginx/inventory.conf:/etc/nginx/conf.d/inventory.conf
         networks: 
             - laravel
-        # depends_on:
-        #     - php
-        #     - mysql
-
-        # links:
-        #     - php
-        #     - mysql
-        #     - redis
+        
+        depends_on: # php & mysql will run before nginx
+            - php
+            - mysql
 
     php:
         build: 
@@ -64,20 +60,20 @@ services:
             - laravel
     redis:
         image: redis:latest
-        container_name: redis
+        container_name: real_redis
         ports: 
             - "6379:6379"
         networks: 
             - laravel
     
-    # composer:
-    #     image: composer:latest
-    #     container_name: composer
-    #     volumes:
-    #         - ../www/demo:/var/www/html/demo
-    #     working_dir: /var/www/html/demo
-    #     networks:
-    #         - laravel
+    composer:
+        image: composer:latest
+        container_name: real_composer
+        volumes:
+            - ../www:/var/www/html
+        working_dir: /var/www/html
+        networks:
+            - laravel
 
 
     # npm:
