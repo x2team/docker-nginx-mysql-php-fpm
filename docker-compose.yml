@@ -1,35 +1,106 @@
-nginx:
-    build: ./images/nginx
-    working_dir: /var/www/html
-    dockerfile: Dockerfile
-    container_name: real_nginx
-    ports:
-        - "80:80"
-    volumes:
-        - ./projects:/var/www/html
-        - ./logs/nginx_log:/var/log/nginx
-        - ./config/nginx/project1.conf:/etc/nginx/conf.d/project1.conf
-        - ./config/nginx/project2.conf:/etc/nginx/conf.d/project2.conf
-    links:
-        - php
-        - mysql
 
-php:
-    build: ./images/php
-    dockerfile: Dockerfile
-    container_name: real_php
-    volumes:
-        - ./projects:/var/www/html
-        - ./logs/php-fpm/php-fpm.log:/var/log/php-fpm.log
-        - ./config/php-fpm/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+version: "3.8"
 
-mysql:
-    build: ./images/mysql
-    dockerfile: Dockerfile
-    container_name: real_mysql
-    ports:
-        - "3306:3306"
-    volumes:
-        - ./data/mysql:/var/lib/mysql
-    environment:
-        MYSQL_ROOT_PASSWORD: password
+networks:
+    laravel:
+
+services:
+    nginx:
+        build: 
+            context: ./images/nginx
+            dockerfile: Dockerfile
+        working_dir: /var/www/html
+        container_name: real_nginx
+        ports:
+            - "80:80"
+        volumes:
+            - ../www:/var/www/html
+            - ./logs/nginx_log:/var/log/nginx
+            - ./config/nginx/students.conf:/etc/nginx/conf.d/students.conf
+            - ./config/nginx/demo.conf:/etc/nginx/conf.d/demo.conf
+            - ./config/nginx/inventory.conf:/etc/nginx/conf.d/inventory.conf
+        networks: 
+            - laravel
+
+        depends_on:
+            - php
+            - mysql
+        # links:
+        #     - php
+        #     - mysql
+        #     - redis
+
+    php:
+        build: 
+            context: ./images/php
+            dockerfile: Dockerfile
+        container_name: real_php
+        volumes:
+            - ../www:/var/www/html
+            - ./logs/php-fpm/php-fpm.log:/var/log/php-fpm.log
+            - ./config/php-fpm/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+        networks: 
+            - laravel
+
+    mysql:
+        build: 
+            context: ./images/mysql
+            dockerfile: Dockerfile
+        container_name: real_mysql
+        restart: unless-stopped
+        tty: true
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./data/mysql:/var/lib/mysql
+        environment: 
+            # MYSQL_DATABASE: students
+            # MYSQL_USER: homestead
+            # MYSQL_PASSWORD: secret
+            MYSQL_ROOT_PASSWORD: secret
+            # SERVICE_TAGS: dev
+            # SERVICE_NAME: mysql
+        networks: 
+            - laravel
+    redis:
+        image: redis:latest
+        container_name: redis
+        ports: 
+            - "6379:6379"
+        networks: 
+            - laravel
+    
+    # composer:
+    #     image: composer:latest
+    #     container_name: composer
+    #     volumes:
+    #         - ../www/demo:/var/www/html/demo
+    #     working_dir: /var/www/html/demo
+    #     networks:
+    #         - laravel
+
+
+    # npm:
+    #     image: node:13.7
+    #     container_name: npm
+    #     volumes:
+    #         - ../www:/var/www/html
+    #     working_dir: /var/www/html
+    #     entrypoint: ['npm']
+    #     networks:
+    #         - laravel
+
+    # artisan:
+    #     build:
+    #         context: .
+    #         dockerfile: Dockerfile
+    #     container_name: artisan
+    #     volumes:
+    #         - ../www:/var/www/html
+    #     depends_on:
+    #         - mysql
+    #     working_dir: /var/www/html
+    #     entrypoint: ['/var/www/html/artisan']
+    #     networks:
+    #         - laravel
+    
