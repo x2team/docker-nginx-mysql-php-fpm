@@ -21,10 +21,10 @@ services:
             - ./config/nginx/inventory.conf:/etc/nginx/conf.d/inventory.conf
         networks: 
             - laravel
+        # depends_on:
+        #     - php
+        #     - mysql
 
-        depends_on:
-            - php
-            - mysql
         # links:
         #     - php
         #     - mysql
